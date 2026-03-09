@@ -1,0 +1,544 @@
+datasource db {
+  provider = "postgresql"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// ═══════════════════════════════════════
+// AUTH & MULTI-TENANT
+// ═══════════════════════════════════════
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  image         String?
+  emailVerified DateTime?
+  role          Role      @default(USER)
+  createdAt     DateTime  @default(now())
+  workspaces    WorkspaceMember[]
+  accounts      Account[]
+  sessions      Session[]
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model Workspace {
+  id               String            @id @default(cuid())
+  name             String
+  slug             String            @unique
+  plan             Plan              @default(FREE)
+  stripeCustomerId String?
+  stripeSubId      String?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  members          WorkspaceMember[]
+  socialAccounts   SocialAccount[]
+  posts            Post[]
+  campaigns        Campaign[]
+  contacts         Contact[]
+  emailLists       EmailList[]
+  heatmapSites     HeatmapSite[]
+  adsConnections   AdsConnection[]
+  mediaFiles       MediaFile[]
+  emailAutomations EmailAutomation[]
+}
+
+model WorkspaceMember {
+  id          String        @id @default(cuid())
+  role        WorkspaceRole @default(MEMBER)
+  userId      String
+  workspaceId String
+  joinedAt    DateTime      @default(now())
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workspace   Workspace     @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, workspaceId])
+}
+
+// ═══════════════════════════════════════
+// SOCIAL MEDIA
+// ═══════════════════════════════════════
+
+model SocialAccount {
+  id             String    @id @default(cuid())
+  platform       Platform
+  accountName    String
+  accountId      String
+  accessToken    String    @db.Text
+  refreshToken   String?   @db.Text
+  tokenExpiresAt DateTime?
+  metadata       Json?
+  workspaceId    String
+  workspace      Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  posts          PostPlatform[]
+  createdAt      DateTime  @default(now())
+
+  @@unique([accountId, workspaceId])
+}
+
+model Post {
+  id          String       @id @default(cuid())
+  content     String       @db.Text
+  hashtags    String[]
+  scheduledAt DateTime?
+  publishedAt DateTime?
+  status      PostStatus   @default(DRAFT)
+  aiGenerated Boolean      @default(false)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  workspaceId String
+  workspace   Workspace    @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  platforms   PostPlatform[]
+  mediaFiles  PostMedia[]
+}
+
+model PostPlatform {
+  id              String        @id @default(cuid())
+  platform        Platform
+  externalPostId  String?
+  status          PostStatus    @default(DRAFT)
+  error           String?       @db.Text
+  impressions     Int           @default(0)
+  clicks          Int           @default(0)
+  likes           Int           @default(0)
+  comments        Int           @default(0)
+  shares          Int           @default(0)
+  reach           Int           @default(0)
+  postId          String
+  post            Post          @relation(fields: [postId], references: [id], onDelete: Cascade)
+  socialAccountId String
+  socialAccount   SocialAccount @relation(fields: [socialAccountId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, socialAccountId])
+}
+
+model PostMedia {
+  id        String    @id @default(cuid())
+  postId    String
+  post      Post      @relation(fields: [postId], references: [id], onDelete: Cascade)
+  mediaId   String
+  media     MediaFile @relation(fields: [mediaId], references: [id], onDelete: Cascade)
+  sortOrder Int       @default(0)
+}
+
+model MediaFile {
+  id          String     @id @default(cuid())
+  filename    String
+  url         String
+  cdnUrl      String?
+  publicId    String?
+  mimeType    String
+  size        Int
+  width       Int?
+  height      Int?
+  workspaceId String
+  workspace   Workspace  @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  posts       PostMedia[]
+  createdAt   DateTime   @default(now())
+}
+
+// ═══════════════════════════════════════
+// ADS (Google + Meta)
+// ═══════════════════════════════════════
+
+model AdsConnection {
+  id             String      @id @default(cuid())
+  platform       AdsPlatform
+  accountId      String
+  accountName    String?
+  accessToken    String      @db.Text
+  refreshToken   String      @db.Text
+  tokenExpiresAt DateTime?
+  workspaceId    String
+  workspace      Workspace   @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  campaigns      Campaign[]
+  createdAt      DateTime    @default(now())
+
+  @@unique([accountId, workspaceId])
+}
+
+model Campaign {
+  id           String           @id @default(cuid())
+  externalId   String?
+  name         String
+  platform     AdsPlatform
+  status       CampaignStatus   @default(DRAFT)
+  objective    String?
+  budget       Float?
+  budgetType   BudgetType       @default(DAILY)
+  startDate    DateTime?
+  endDate      DateTime?
+  workspaceId  String
+  workspace    Workspace        @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  connectionId String
+  connection   AdsConnection    @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+  creatives    AdCreative[]
+  metrics      CampaignMetric[]
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+}
+
+model AdCreative {
+  id             String          @id @default(cuid())
+  headline       String
+  description    String          @db.Text
+  imageUrl       String?
+  videoUrl       String?
+  ctaText        String?
+  destinationUrl String?
+  aiGenerated    Boolean         @default(false)
+  status         CreativeStatus  @default(DRAFT)
+  campaignId     String
+  campaign       Campaign        @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  metrics        CreativeMetric[]
+  createdAt      DateTime        @default(now())
+}
+
+model CampaignMetric {
+  id          String   @id @default(cuid())
+  date        DateTime @db.Date
+  impressions Int      @default(0)
+  clicks      Int      @default(0)
+  conversions Int      @default(0)
+  spend       Float    @default(0)
+  cpc         Float?
+  ctr         Float?
+  cpa         Float?
+  roas        Float?
+  campaignId  String
+  campaign    Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  @@unique([campaignId, date])
+}
+
+model CreativeMetric {
+  id          String     @id @default(cuid())
+  date        DateTime   @db.Date
+  impressions Int        @default(0)
+  clicks      Int        @default(0)
+  conversions Int        @default(0)
+  spend       Float      @default(0)
+  creativeId  String
+  creative    AdCreative @relation(fields: [creativeId], references: [id], onDelete: Cascade)
+
+  @@unique([creativeId, date])
+}
+
+// ═══════════════════════════════════════
+// CRM
+// ═══════════════════════════════════════
+
+model Contact {
+  id           String        @id @default(cuid())
+  email        String
+  firstName    String?
+  lastName     String?
+  phone        String?
+  company      String?
+  jobTitle     String?
+  source       LeadSource?
+  stage        PipelineStage @default(LEAD)
+  score        Int           @default(0)
+  tags         String[]
+  customFields Json?
+  avatarUrl    String?
+  workspaceId  String
+  workspace    Workspace     @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  activities   Activity[]
+  emailEvents  EmailEvent[]
+  notes        ContactNote[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  @@unique([email, workspaceId])
+}
+
+model ContactNote {
+  id        String   @id @default(cuid())
+  content   String   @db.Text
+  contactId String
+  contact   Contact  @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+}
+
+model Activity {
+  id          String       @id @default(cuid())
+  type        ActivityType
+  description String?      @db.Text
+  metadata    Json?
+  contactId   String
+  contact     Contact      @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  createdAt   DateTime     @default(now())
+}
+
+// ═══════════════════════════════════════
+// EMAIL AUTOMATION
+// ═══════════════════════════════════════
+
+model EmailList {
+  id          String            @id @default(cuid())
+  name        String
+  description String?
+  workspaceId String
+  workspace   Workspace         @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  subscribers EmailSubscriber[]
+  campaigns   EmailCampaign[]
+  createdAt   DateTime          @default(now())
+}
+
+model EmailSubscriber {
+  id        String           @id @default(cuid())
+  email     String
+  status    SubscriberStatus @default(ACTIVE)
+  listId    String
+  list      EmailList        @relation(fields: [listId], references: [id], onDelete: Cascade)
+  createdAt DateTime         @default(now())
+
+  @@unique([email, listId])
+}
+
+model EmailCampaign {
+  id          String              @id @default(cuid())
+  name        String
+  subject     String
+  preheader   String?
+  htmlContent String              @db.Text
+  status      EmailCampaignStatus @default(DRAFT)
+  scheduledAt DateTime?
+  sentAt      DateTime?
+  listId      String
+  list        EmailList           @relation(fields: [listId], references: [id], onDelete: Cascade)
+  events      EmailEvent[]
+  createdAt   DateTime            @default(now())
+}
+
+model EmailEvent {
+  id         String         @id @default(cuid())
+  type       EmailEventType
+  contactId  String?
+  contact    Contact?       @relation(fields: [contactId], references: [id], onDelete: SetNull)
+  campaignId String
+  campaign   EmailCampaign  @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  metadata   Json?
+  createdAt  DateTime       @default(now())
+}
+
+model EmailAutomation {
+  id          String    @id @default(cuid())
+  name        String
+  trigger     Json
+  steps       Json
+  active      Boolean   @default(false)
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+// ═══════════════════════════════════════
+// HEATMAP & SESSION RECORDING
+// ═══════════════════════════════════════
+
+model HeatmapSite {
+  id          String           @id @default(cuid())
+  domain      String
+  trackingId  String           @unique @default(cuid())
+  workspaceId String
+  workspace   Workspace        @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  sessions    HeatmapSession[]
+  createdAt   DateTime         @default(now())
+}
+
+model HeatmapSession {
+  id           String         @id @default(cuid())
+  visitorId    String
+  userAgent    String?
+  screenWidth  Int
+  screenHeight Int
+  pageUrl      String
+  duration     Int?
+  siteId       String
+  site         HeatmapSite    @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  events       HeatmapEvent[]
+  recording    Json?
+  startedAt    DateTime       @default(now())
+}
+
+model HeatmapEvent {
+  id          String           @id @default(cuid())
+  type        HeatmapEventType
+  x           Int
+  y           Int
+  scrollDepth Float?
+  element     String?
+  sessionId   String
+  session     HeatmapSession   @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  timestamp   DateTime         @default(now())
+}
+
+// ═══════════════════════════════════════
+// ENUMS
+// ═══════════════════════════════════════
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum Plan {
+  FREE
+  STARTER
+  PRO
+  AGENCY
+}
+
+enum WorkspaceRole {
+  OWNER
+  ADMIN
+  MEMBER
+  VIEWER
+}
+
+enum Platform {
+  FACEBOOK
+  INSTAGRAM
+  LINKEDIN
+  TWITTER
+  TIKTOK
+  YOUTUBE
+}
+
+enum PostStatus {
+  DRAFT
+  REVIEW
+  APPROVED
+  SCHEDULED
+  PUBLISHING
+  PUBLISHED
+  FAILED
+}
+
+enum AdsPlatform {
+  GOOGLE_ADS
+  META_ADS
+}
+
+enum CampaignStatus {
+  DRAFT
+  ACTIVE
+  PAUSED
+  COMPLETED
+  ARCHIVED
+}
+
+enum BudgetType {
+  DAILY
+  LIFETIME
+}
+
+enum CreativeStatus {
+  DRAFT
+  ACTIVE
+  PAUSED
+  WINNER
+  LOSER
+}
+
+enum LeadSource {
+  ORGANIC
+  PAID_SEARCH
+  PAID_SOCIAL
+  REFERRAL
+  DIRECT
+  EMAIL
+  WEBINAR
+  OTHER
+}
+
+enum PipelineStage {
+  LEAD
+  MQL
+  SQL
+  OPPORTUNITY
+  CUSTOMER
+  LOST
+}
+
+enum ActivityType {
+  EMAIL_SENT
+  EMAIL_OPENED
+  PAGE_VIEW
+  AD_CLICK
+  FORM_SUBMIT
+  NOTE
+  CALL
+  MEETING
+  STAGE_CHANGE
+}
+
+enum SubscriberStatus {
+  ACTIVE
+  UNSUBSCRIBED
+  BOUNCED
+}
+
+enum EmailCampaignStatus {
+  DRAFT
+  SCHEDULED
+  SENDING
+  SENT
+  CANCELLED
+}
+
+enum EmailEventType {
+  SENT
+  DELIVERED
+  OPENED
+  CLICKED
+  BOUNCED
+  UNSUBSCRIBED
+  COMPLAINED
+}
+
+enum HeatmapEventType {
+  CLICK
+  SCROLL
+  MOUSEMOVE
+  RAGE_CLICK
+  DEAD_CLICK
+}
