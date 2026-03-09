@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [master, main]
   pull_request:
-    branches: [main]
+    branches: [master, main]
 
 jobs:
   lint-and-typecheck:
@@ -48,11 +48,13 @@ jobs:
         run: npm run build
         env:
           DATABASE_URL: postgresql://user:pass@localhost:5432/db
+          CSRF_SECRET: ci-placeholder-secret
+          STRIPE_SECRET_KEY: sk_test_placeholder
 
   docker:
     runs-on: ubuntu-latest
     needs: build
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main') && github.event_name == 'push'
     steps:
       - uses: actions/checkout@v4
 

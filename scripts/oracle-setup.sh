@@ -61,8 +61,10 @@ echo "[OK] Porte 80 e 443 aperte"
 # ---------------------------------------------------------------------------
 echo "[3/8] Generazione secrets..."
 DB_PASSWORD=$(openssl rand -base64 24 | tr -d '/+=' | head -c 32)
+REDIS_PASSWORD=$(openssl rand -base64 24 | tr -d '/+=' | head -c 32)
 NEXTAUTH_SECRET=$(openssl rand -base64 32)
 ENCRYPTION_KEY=$(openssl rand -hex 32)
+CSRF_SECRET=$(openssl rand -hex 32)
 
 echo "[OK] Secrets generati"
 
@@ -87,14 +89,19 @@ DB_PASSWORD=${DB_PASSWORD}
 DATABASE_URL=postgresql://adpilot:${DB_PASSWORD}@db:5432/adpilot
 
 # Redis (interno Docker)
-REDIS_URL=redis://redis:6379
+REDIS_PASSWORD=${REDIS_PASSWORD}
+REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379
 
 # NextAuth
 NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
 NEXTAUTH_URL=https://${DOMAIN}
 
-# Encryption (per token OAuth)
+# Security
+CSRF_SECRET=${CSRF_SECRET}
 ENCRYPTION_KEY=${ENCRYPTION_KEY}
+
+# App URL
+NEXT_PUBLIC_APP_URL=https://${DOMAIN}
 
 # Amazon SES
 SES_ACCESS_KEY_ID=
@@ -176,10 +183,11 @@ echo "[OK] Database migrato"
 # ---------------------------------------------------------------------------
 echo "[8/8] Ottenimento certificato SSL..."
 
+COMPOSE_PROJECT=$(basename "$(pwd)")
 docker run --rm \
-  -v "$(docker volume ls -q | grep certbot-www | head -1):/var/www/certbot" \
-  -v "$(docker volume ls -q | grep certbot-etc | head -1):/etc/letsencrypt" \
-  -v "$(docker volume ls -q | grep certbot-var | head -1):/var/lib/letsencrypt" \
+  -v "${COMPOSE_PROJECT}_certbot-www:/var/www/certbot" \
+  -v "${COMPOSE_PROJECT}_certbot-etc:/etc/letsencrypt" \
+  -v "${COMPOSE_PROJECT}_certbot-var:/var/lib/letsencrypt" \
   certbot/certbot certonly \
     --webroot \
     --webroot-path=/var/www/certbot \
@@ -213,7 +221,7 @@ echo ""
 echo "[INFO] Configurazione cron per backup e rinnovo SSL..."
 
 CRON_BACKUP="0 2 * * * cd $(pwd) && bash scripts/backup.sh >> /var/log/adpilot-backup.log 2>&1"
-CRON_SSL="0 3 * * * docker run --rm -v \$(docker volume ls -q | grep certbot-etc | head -1):/etc/letsencrypt -v \$(docker volume ls -q | grep certbot-var | head -1):/var/lib/letsencrypt -v \$(docker volume ls -q | grep certbot-www | head -1):/var/www/certbot certbot/certbot renew --quiet && docker restart adpilot-nginx"
+CRON_SSL="0 3 * * * docker run --rm -v ${COMPOSE_PROJECT}_certbot-etc:/etc/letsencrypt -v ${COMPOSE_PROJECT}_certbot-var:/var/lib/letsencrypt -v ${COMPOSE_PROJECT}_certbot-www:/var/www/certbot certbot/certbot renew --quiet && docker restart adpilot-nginx"
 
 # Aggiungi solo se non esistono già
 (crontab -l 2>/dev/null || true) | grep -v "adpilot-backup\|certbot" | {

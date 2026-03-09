@@ -18,6 +18,12 @@ ENV NEXT_TELEMETRY_DISABLED=1
 
 # Generate Prisma client for the target platform
 RUN npx prisma generate
+
+# Dummy env vars for build (Next.js collects page data at build time)
+ENV CSRF_SECRET="build-placeholder"
+ENV STRIPE_SECRET_KEY="sk_build_placeholder"
+ENV DATABASE_URL="postgresql://build:build@localhost:5432/build"
+
 RUN npm run build
 
 # Stage 3: Production runner

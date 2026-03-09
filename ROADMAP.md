@@ -1095,8 +1095,8 @@ TRIGGERS                    CONDITIONS              ACTIONS
 | 6.10 | ~~Security~~ | Rate limiting, token encryption, CORS, CSP, input sanitization | 5 | DONE |
 | 6.11 | ~~Backup & monitoring~~ | pg_dump daily, health check, error logging | 4 | DONE |
 | 6.12 | ~~E2E testing~~ | Playwright: auth, post, campaign, contacts, email, heatmap | 8 | DONE |
-| 6.13 | Deploy production | Docker multi-stage build, docker-compose up, DNS, SSL, smoke test | 4 | TODO |
-| | **TOTALE FASE 6** | | **76h** | **12/13 DONE** |
+| 6.13 | ~~Deploy production~~ | Docker multi-stage build, docker-compose up, DNS, SSL, smoke test | 4 | DONE |
+| | **TOTALE FASE 6** | | **76h** | **13/13 DONE** |
 
 ### Piani Pricing
 

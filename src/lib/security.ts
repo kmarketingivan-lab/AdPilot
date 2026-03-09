@@ -6,17 +6,26 @@
 
 import { randomBytes, createHmac } from "crypto";
 import { NextRequest, NextResponse } from "next/server";
-import { redisConnection as redis } from "@/server/queue/connection";
+// Lazy import to avoid connecting to Redis at build time
+let _redis: import("ioredis").default | null = null;
+function getRedis() {
+  if (!_redis) {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { redisConnection } = require("@/server/queue/connection") as { redisConnection: import("ioredis").default };
+    _redis = redisConnection;
+  }
+  return _redis;
+}
 
 // ---------------------------------------------------------------------------
 // CSRF Token Generation & Validation
 // ---------------------------------------------------------------------------
 
-const CSRF_SECRET: string = (() => {
+function getCsrfSecret(): string {
   const secret = process.env.CSRF_SECRET;
   if (!secret) throw new Error("CSRF_SECRET environment variable is required");
   return secret;
-})();
+}
 const CSRF_TOKEN_HEADER = "x-csrf-token";
 const CSRF_COOKIE_NAME = "__adpilot_csrf";
 
@@ -27,7 +36,7 @@ const CSRF_COOKIE_NAME = "__adpilot_csrf";
  */
 export function generateCsrfToken(): { token: string; cookie: string } {
   const nonce = randomBytes(32).toString("hex");
-  const signature = createHmac("sha256", CSRF_SECRET)
+  const signature = createHmac("sha256", getCsrfSecret())
     .update(nonce)
     .digest("hex");
   const token = `${nonce}.${signature}`;
@@ -42,7 +51,7 @@ export function validateCsrfToken(token: string): boolean {
   if (parts.length !== 2) return false;
 
   const [nonce, signature] = parts;
-  const expected = createHmac("sha256", CSRF_SECRET)
+  const expected = createHmac("sha256", getCsrfSecret())
     .update(nonce)
     .digest("hex");
 
@@ -171,7 +180,7 @@ export async function checkRateLimit(
   const now = Date.now();
   const windowStart = now - config.windowSeconds * 1000;
 
-  const pipeline = redis.pipeline();
+  const pipeline = getRedis().pipeline();
   // Remove expired entries
   pipeline.zremrangebyscore(key, 0, windowStart);
   // Count current entries
@@ -190,7 +199,7 @@ export async function checkRateLimit(
 
   if (!allowed) {
     // Remove the entry we just added since the request is denied
-    await redis.zremrangebyscore(key, now, now);
+    await getRedis().zremrangebyscore(key, now, now);
   }
 
   return { allowed, remaining, resetAt };
