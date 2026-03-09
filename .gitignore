@@ -39,3 +39,8 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Excluded from commits
+.coverage
+_archive/
+VALIDATION_RESULTS.md
