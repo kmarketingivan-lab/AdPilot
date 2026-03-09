@@ -1,3 +1,6 @@
+// NOTE: Using next-auth@5.0.0-beta.30 (Auth.js v5)
+// Monitor https://github.com/nextauthjs/next-auth/releases for stable v5 release
+// Current config is compatible with the stable API — upgrade when available
 import NextAuth from "next-auth";
 import Google from "next-auth/providers/google";
 import { PrismaAdapter } from "@auth/prisma-adapter";
@@ -13,6 +16,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   ],
   session: {
     strategy: "jwt",
+    maxAge: 30 * 24 * 60 * 60, // 30 days
+    updateAge: 24 * 60 * 60, // 24 hours
   },
   callbacks: {
     async jwt({ token, user }) {

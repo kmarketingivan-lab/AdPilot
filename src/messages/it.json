@@ -1,0 +1,90 @@
+{
+  "common": {
+    "retry": "Riprova",
+    "save": "Salva",
+    "cancel": "Annulla",
+    "delete": "Elimina",
+    "edit": "Modifica",
+    "create": "Crea",
+    "search": "Cerca",
+    "loading": "Caricamento...",
+    "error": "Errore",
+    "success": "Successo",
+    "confirm": "Conferma",
+    "back": "Indietro",
+    "next": "Avanti",
+    "close": "Chiudi"
+  },
+  "auth": {
+    "signIn": "Accedi",
+    "signOut": "Esci",
+    "signInWith": "Accedi con {provider}"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "overview": "Panoramica"
+  },
+  "social": {
+    "title": "Social Media",
+    "accounts": "Account",
+    "compose": "Componi",
+    "calendar": "Calendario",
+    "analytics": "Analytics",
+    "library": "Libreria Media"
+  },
+  "analytics": {
+    "title": "Analytics",
+    "campaigns": "Campagne",
+    "reports": "Report",
+    "dateRange": {
+      "today": "Oggi",
+      "last7days": "Ultimi 7 giorni",
+      "last30days": "Ultimi 30 giorni",
+      "lastMonth": "Mese scorso",
+      "custom": "Personalizzato"
+    }
+  },
+  "crm": {
+    "title": "CRM",
+    "contacts": "Contatti",
+    "pipeline": "Pipeline",
+    "noContacts": "Nessun contatto trovato"
+  },
+  "email": {
+    "title": "Email",
+    "campaigns": "Campagne",
+    "templates": "Template",
+    "lists": "Liste",
+    "analytics": "Analytics"
+  },
+  "heatmap": {
+    "title": "Heatmap",
+    "sessions": "Sessioni",
+    "funnel": "Funnel",
+    "rageClicks": "Rage Clicks"
+  },
+  "ads": {
+    "title": "Ads",
+    "generate": "Genera",
+    "library": "Libreria Copy",
+    "preview": "Anteprima",
+    "newCopy": "Nuovo copy",
+    "editCopy": "Modifica copy"
+  },
+  "settings": {
+    "title": "Impostazioni",
+    "general": "Generali",
+    "team": "Team",
+    "integrations": "Integrazioni",
+    "billing": "Fatturazione"
+  },
+  "onboarding": {
+    "createWorkspace": "Crea il tuo Workspace",
+    "chooseName": "Scegli un nome"
+  },
+  "errors": {
+    "somethingWentWrong": "Qualcosa è andato storto",
+    "loadingError": "Errore nel caricamento",
+    "notFound": "Pagina non trovata"
+  }
+}

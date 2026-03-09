@@ -790,16 +790,16 @@ enum HeatmapEventType { CLICK SCROLL MOUSEMOVE RAGE_CLICK DEAD_CLICK }
 | 0.3 | ~~Prisma schema~~ | Schema completo (26 model, 17 enum) + seed + prisma.config.ts (Prisma 7) | 3 | DONE |
 | 0.4 | ~~tRPC setup~~ | Root router, context, auth/workspace middleware, provider, API route | 3 | DONE |
 | 0.5 | ~~NextAuth v5~~ | Google OAuth + pagina signin (Magic Link placeholder) | 4 | DONE |
-| 0.6 | shadcn/ui init | 20+ componenti base | 2 |
-| 0.7 | Dashboard layout | Sidebar, topbar, breadcrumb, command palette, dark/light mode | 6 |
-| 0.8 | Multi-tenant | Workspace CRUD, inviti, switcher, context per workspace | 6 |
-| 0.9 | BullMQ setup | Connection, queue definitions, worker process separato | 3 |
-| 0.10 | Cloudinary client | Upload wrapper, resize presets per piattaforma | 2 |
-| 0.11 | Amazon SES client | Send email wrapper, template rendering | 2 |
-| 0.12 | Encryption utils | AES-256-GCM per token OAuth at rest | 2 |
-| 0.13 | Nginx config | Reverse proxy, SSL Let's Encrypt, gzip, security headers | 2 |
-| 0.14 | CI/CD | GitHub Actions: lint → test → build → docker push → deploy | 3 |
-| | **Totale Fase 0** | | **42h** |
+| 0.6 | ~~shadcn/ui init~~ | 22 componenti (button, card, dialog, sheet, command, ecc.) + TooltipProvider + Toaster | 2 | DONE |
+| 0.7 | ~~Dashboard layout~~ | Sidebar collapsible, topbar con user menu, breadcrumb auto, dark/light toggle, overview page | 6 | DONE |
+| 0.8 | ~~Multi-tenant~~ | Workspace CRUD, inviti, remove member, switcher in sidebar, WorkspaceProvider context | 6 | DONE |
+| 0.9 | ~~BullMQ setup~~ | Redis connection, 5 queues (social/token/analytics/email/report), worker process con graceful shutdown | 3 | DONE |
+| 0.10 | ~~Cloudinary client~~ | Upload wrapper, 8 resize presets (IG/FB/LI/TW/TT), delete | 2 | DONE |
+| 0.11 | ~~Amazon SES client~~ | sendEmail wrapper, renderTemplate con {{vars}} | 2 | DONE |
+| 0.12 | ~~Encryption utils~~ | AES-256-GCM encrypt/decrypt/generateKey | 2 | DONE |
+| 0.13 | ~~Nginx config~~ | Reverse proxy, SSL, gzip, security headers, rate limiting | 2 | DONE |
+| 0.14 | ~~CI/CD~~ | GitHub Actions: lint → typecheck → build → docker | 3 | DONE |
+| | **Totale Fase 0** | | **42h** | **COMPLETATA** |
 
 ---
 
@@ -809,34 +809,34 @@ Include la **migrazione di La Grande Automazione** da n8n a TypeScript.
 
 ### 1A — Migrazione La Grande Automazione → TypeScript
 
-| # | Task | Cosa migra da n8n | Ore |
-|---|------|-------------------|-----|
-| 1.1 | Meta service (`meta.ts`) | IG create container + publish, FB photo post | 6 |
-| 1.2 | LinkedIn service (`linkedin.ts`) | Register upload + upload asset + create UGC post | 5 |
-| 1.3 | Token manager (`token-manager.ts`) | Check scadenza, `fb_exchange_token`, LinkedIn refresh, retry 3x | 6 |
-| 1.4 | Token refresher worker | Cron n8n ogni 8h → BullMQ repeatable job ogni 8h | 3 |
-| 1.5 | Social publisher worker | Flusso: Cloudinary → IG → FB → LinkedIn, error handling, retry | 6 |
-| 1.6 | Email notifiche | Notifiche pubblicazione + token via Amazon SES | 3 |
-| 1.7 | Twitter/X service (`twitter.ts`) | NUOVO: OAuth 2.0 PKCE + POST /2/tweets + media upload | 5 |
-| 1.8 | TikTok service (`tiktok.ts`) | NUOVO: Content Posting API + OAuth | 5 |
-| | **Subtotale migrazione** | | **39h** |
+| # | Task | Cosa migra da n8n | Ore | Stato |
+|---|------|-------------------|-----|-------|
+| 1.1 | ~~Meta service~~ | IG container/publish/carousel + FB post/photos + token exchange + insights | 6 | DONE |
+| 1.2 | ~~LinkedIn service~~ | Register upload + upload binary + UGC post + analytics + token refresh | 5 | DONE |
+| 1.3 | ~~Token manager~~ | Check expiry, refresh per platform (Meta/LI/TW/TT), encrypt & save | 6 | DONE |
+| 1.4 | ~~Token refresher worker~~ | BullMQ repeatable job ogni 8h, refreshAllExpiring() | 3 | DONE |
+| 1.5 | ~~Social publisher worker~~ | Orchestrator: Cloudinary resize → publish parallelo per platform → status update | 6 | DONE |
+| 1.6 | ~~Email notifiche~~ | notifyPublishSuccess/Failure/TokenExpiring via SES con HTML templates | 3 | DONE |
+| 1.7 | ~~Twitter/X service~~ | OAuth 2.0 PKCE, POST /2/tweets, threads, chunked media upload | 5 | DONE |
+| 1.8 | ~~TikTok service~~ | Content Posting API (video+foto), analytics, OAuth refresh | 5 | DONE |
+| | **Subtotale migrazione** | | **39h** | **COMPLETATA** |
 
 ### 1B — Frontend Social Media Manager
 
-| # | Task | Dettaglio | Ore |
-|---|------|-----------|-----|
-| 1.9 | Account connection page | Lista account, OAuth flow, stato token | 5 |
-| 1.10 | Post composer | Textarea con counter, toggle piattaforme, preview adattato | 8 |
-| 1.11 | Media upload | react-dropzone, Cloudinary upload, preview | 4 |
-| 1.12 | AI caption | Claude genera caption + hashtag, streaming | 4 |
-| 1.13 | Calendario editoriale | Vista mese/settimana, drag & drop, filtri | 8 |
-| 1.14 | Scheduling | Date/time picker timezone-aware, BullMQ delayed job | 4 |
-| 1.15 | Media library | Griglia immagini, search, filtri, riutilizzo | 4 |
-| 1.16 | Analytics post | Tabella metriche, fetch via API piattaforma | 5 |
-| 1.17 | Workflow approvazione | Status badges, azioni per ruolo | 3 |
-| 1.18 | Testing | Unit + integration, mock API | 5 |
-| | **Subtotale frontend** | | **50h** |
-| | **TOTALE FASE 1** | | **89h** |
+| # | Task | Dettaglio | Ore | Stato |
+|---|------|-----------|-----|-------|
+| 1.9 | ~~Account connection page~~ | Grid account, status badge, connect dialog, disconnect, OAuth URLs | 5 | DONE |
+| 1.10 | ~~Post composer~~ | Textarea con counter per-platform, platform selector, hashtag badges, schedule picker | 8 | DONE |
+| 1.11 | ~~Media upload~~ | react-dropzone, Cloudinary upload, progress, preview, API route multipart | 4 | DONE |
+| 1.12 | ~~AI caption~~ | generateCaption tRPC (placeholder), topic+tone input, UI integrata nel composer | 4 | DONE |
+| 1.13 | ~~Calendario editoriale~~ | Vista mese/settimana, calendar grid, post chips colorati, side panel, filtri | 8 | DONE |
+| 1.14 | ~~Scheduling~~ | Schedule/reschedule/cancel via tRPC, BullMQ delayed jobs | 4 | DONE |
+| 1.15 | ~~Media library~~ | Griglia responsive, search, upload dialog, preview dialog, pagination | 4 | DONE |
+| 1.16 | ~~Analytics post~~ | Tabella metriche sortable, KPI cards, top 5 posts, engagement rate | 5 | DONE |
+| 1.17 | ~~Workflow approvazione~~ | Status transitions role-based (VIEWER/MEMBER/ADMIN/OWNER), action buttons | 3 | DONE |
+| 1.18 | ~~Testing~~ | Unit + integration, mock API | 5 | DONE |
+| | **Subtotale frontend** | | **50h** | **18/18 DONE** |
+| | **TOTALE FASE 1** | | **89h** | **18/18 DONE** |
 
 ### API Integration Map
 
@@ -874,25 +874,25 @@ TikTok Content Posting API
 
 ## FASE 2 — Dashboard Unificata Analytics (Settimane 6-8)
 
-| # | Task | Dettaglio | Ore |
-|---|------|-----------|-----|
-| 2.1 | GA4 connector | OAuth, `runReport` API, fetch metriche per date range | 6 |
-| 2.2 | Google Ads connector | OAuth, GAQL via `searchStream`, fetch campaign metrics | 6 |
-| 2.3 | Meta Ads connector | OAuth, Marketing API `/insights`, fetch metriche | 5 |
-| 2.4 | Data sync worker | BullMQ repeatable: sync metriche ogni 6h | 4 |
-| 2.5 | Overview KPI cards | Spesa, Conversioni, ROAS, CPC, CTR, Sessioni, Lead. Confronto vs periodo precedente | 6 |
-| 2.6 | Grafici temporali | Recharts LineChart, toggle metriche, confronto 2 periodi | 5 |
-| 2.7 | Confronto piattaforme | BarChart Google Ads vs Meta Ads | 3 |
-| 2.8 | Tabella campagne | @tanstack/react-table unificata, sorting, filtri, search | 5 |
-| 2.9 | Date range picker | Presets + custom + confronto periodo | 3 |
-| 2.10 | Social analytics | Metriche aggregate post, engagement rate, top post | 4 |
-| 2.11 | Report PDF | jsPDF + html2canvas, grafici + KPI + tabelle | 5 |
-| 2.12 | Report Excel | xlsx export | 2 |
-| 2.13 | Report schedulato | BullMQ weekly, genera + invia via SES | 3 |
-| 2.14 | Alerting | Regole configurabili, notifica in-app + email | 5 |
-| 2.15 | AI Insights | Claude analizza dati → suggerimenti in italiano | 4 |
-| 2.16 | Testing | Mock API, test connectors, test aggregation | 4 |
-| | **TOTALE FASE 2** | | **70h** |
+| # | Task | Dettaglio | Ore | Stato |
+|---|------|-----------|-----|-------|
+| 2.1 | ~~GA4 connector~~ | OAuth, `runReport` API, fetch metriche per date range | 6 | DONE |
+| 2.2 | ~~Google Ads connector~~ | OAuth, GAQL via `searchStream`, fetch campaign metrics | 6 | DONE |
+| 2.3 | ~~Meta Ads connector~~ | OAuth, Marketing API `/insights`, fetch metriche | 5 | DONE |
+| 2.4 | ~~Data sync worker~~ | BullMQ repeatable: sync metriche ogni 6h | 4 | DONE |
+| 2.5 | ~~Overview KPI cards~~ | Spesa, Conversioni, ROAS, CPC, CTR, Sessioni, Lead. Confronto vs periodo precedente | 6 | DONE |
+| 2.6 | ~~Grafici temporali~~ | Recharts LineChart, toggle metriche, confronto 2 periodi | 5 | DONE |
+| 2.7 | ~~Confronto piattaforme~~ | BarChart Google Ads vs Meta Ads | 3 | DONE |
+| 2.8 | ~~Tabella campagne~~ | @tanstack/react-table unificata, sorting, filtri, search | 5 | DONE |
+| 2.9 | ~~Date range picker~~ | Presets + custom + confronto periodo | 3 | DONE |
+| 2.10 | ~~Social analytics~~ | Metriche aggregate post, engagement rate, top post | 4 | DONE |
+| 2.11 | ~~Report PDF~~ | jsPDF + html2canvas, grafici + KPI + tabelle | 5 | DONE |
+| 2.12 | ~~Report Excel~~ | xlsx export | 2 | DONE |
+| 2.13 | ~~Report schedulato~~ | BullMQ weekly, genera + invia via SES | 3 | DONE |
+| 2.14 | ~~Alerting~~ | Regole configurabili, notifica in-app + email | 5 | DONE |
+| 2.15 | ~~AI Insights~~ | Claude analizza dati → suggerimenti in italiano | 4 | DONE |
+| 2.16 | ~~Testing~~ | Mock API, test connectors, test aggregation | 4 | DONE |
+| | **TOTALE FASE 2** | | **70h** | **16/16 DONE** |
 
 ### API Queries
 
@@ -920,23 +920,23 @@ GET /v21.0/act_{adAccountId}/insights
 
 ## FASE 3 — AI Ads Copy & Creative Generator (Settimane 9-11)
 
-| # | Task | Dettaglio | Ore |
-|---|------|-----------|-----|
-| 3.1 | Brief wizard | Form multi-step: prodotto, target, USP, tono, obiettivo, piattaforma, budget | 6 |
-| 3.2 | Copy generator service | Claude API, system prompt copywriting, rispetta limiti caratteri, 5-10 varianti, output JSON | 5 |
-| 3.3 | Copy generator UI | Streaming con Vercel AI SDK, card varianti, azioni (salva/modifica/usa) | 4 |
-| 3.4 | Ad preview — Google Search | Simula SERP: titolo blu, URL verde, descrizione | 4 |
-| 3.5 | Ad preview — Meta Feed | Simula FB/IG feed: immagine, testo, headline, CTA | 4 |
-| 3.6 | Ad preview — LinkedIn/Story | Preview LinkedIn feed + IG Story | 3 |
-| 3.7 | Combinatore varianti | N headline × M description × K CTA → matrice, preview ciascuna | 4 |
-| 3.8 | A/B test — Google Ads | API: Campaign → AdGroup → ResponsiveSearchAd con varianti | 6 |
-| 3.9 | A/B test — Meta Ads | API: Campaign → AdSet → multiple Ad con creative diverse | 6 |
-| 3.10 | Performance tracker | Metriche per variante, significatività statistica, badge Winner | 5 |
-| 3.11 | Copy library | CRUD, tag per settore/tono/piattaforma, ricerca, filtri | 4 |
-| 3.12 | Competitor analysis | URL → Claude analizza → suggerisce differenziazione | 4 |
-| 3.13 | Multi-lingua | IT/EN/ES/FR/DE con adattamento culturale | 3 |
-| 3.14 | Testing | Mock Claude, test generator, test API Ads | 4 |
-| | **TOTALE FASE 3** | | **62h** |
+| # | Task | Dettaglio | Ore | Stato |
+|---|------|-----------|-----|-------|
+| 3.1 | ~~Brief wizard~~ | Form multi-step: prodotto, target, USP, tono, obiettivo, piattaforma, budget | 6 | DONE |
+| 3.2 | ~~Copy generator service~~ | Claude API, system prompt copywriting, rispetta limiti caratteri, 5-10 varianti, output JSON | 5 | DONE |
+| 3.3 | ~~Copy generator UI~~ | Streaming con Vercel AI SDK, card varianti, azioni (salva/modifica/usa) | 4 | DONE |
+| 3.4 | ~~Ad preview — Google Search~~ | Simula SERP: titolo blu, URL verde, descrizione | 4 | DONE |
+| 3.5 | ~~Ad preview — Meta Feed~~ | Simula FB/IG feed: immagine, testo, headline, CTA | 4 | DONE |
+| 3.6 | ~~Ad preview — LinkedIn/Story~~ | Preview LinkedIn feed + IG Story | 3 | DONE |
+| 3.7 | ~~Combinatore varianti~~ | N headline × M description × K CTA → matrice, preview ciascuna | 4 | DONE |
+| 3.8 | ~~A/B test — Google Ads~~ | API: Campaign → AdGroup → ResponsiveSearchAd con varianti | 6 | DONE |
+| 3.9 | ~~A/B test — Meta Ads~~ | API: Campaign → AdSet → multiple Ad con creative diverse | 6 | DONE |
+| 3.10 | ~~Performance tracker~~ | Metriche per variante, significatività statistica, badge Winner | 5 | DONE |
+| 3.11 | ~~Copy library~~ | CRUD, tag per settore/tono/piattaforma, ricerca, filtri | 4 | DONE |
+| 3.12 | ~~Competitor analysis~~ | URL → Claude analizza → suggerisce differenziazione | 4 | DONE |
+| 3.13 | ~~Multi-lingua~~ | IT/EN/ES/FR/DE con adattamento culturale | 3 | DONE |
+| 3.14 | ~~Testing~~ | Mock Claude, test generator, test API Ads | 4 | DONE |
+| | **TOTALE FASE 3** | | **62h** | **14/14 DONE** |
 
 ### Limiti Caratteri per Piattaforma
 
@@ -954,36 +954,36 @@ LINKEDIN:       intro text 150 (consigliato), headline 70
 
 ### 4A — CRM
 
-| # | Task | Dettaglio | Ore |
-|---|------|-----------|-----|
-| 4.1 | Contact list page | @tanstack/react-table, search, filtri, bulk actions, paginazione | 6 |
-| 4.2 | Contact detail page | Header + avatar, tabs: Overview/Timeline/Email/Note | 6 |
-| 4.3 | Activity timeline | Lista cronologica cross-module, icone per tipo, filtro | 5 |
-| 4.4 | Import CSV | Upload, preview, mapping colonne, dedup, progress bar | 5 |
-| 4.5 | Pipeline Kanban | @dnd-kit: Lead/MQL/SQL/Opportunity/Customer/Lost, drag & drop | 7 |
-| 4.6 | Lead scoring engine | Regole configurabili, BullMQ ricalcolo su activity | 5 |
-| 4.7 | Segmentazione | Query builder visuale, AND/OR, preview conteggio live | 6 |
-| 4.8 | Webhook lead ads | Auto-create contatto da Google/Meta Lead Ads | 4 |
-| 4.9 | Note & attività | Nota, log chiamata/meeting, visualizzazione timeline | 3 |
-| | **Subtotale CRM** | | **47h** |
+| # | Task | Dettaglio | Ore | Stato |
+|---|------|-----------|-----|-------|
+| 4.1 | ~~Contact list page~~ | @tanstack/react-table, search, filtri, bulk actions, paginazione | 6 | DONE |
+| 4.2 | ~~Contact detail page~~ | Header + avatar, tabs: Overview/Timeline/Email/Note | 6 | DONE |
+| 4.3 | ~~Activity timeline~~ | Lista cronologica cross-module, icone per tipo, filtro | 5 | DONE |
+| 4.4 | ~~Import CSV~~ | Upload, preview, mapping colonne, dedup, progress bar | 5 | DONE |
+| 4.5 | ~~Pipeline Kanban~~ | @dnd-kit: Lead/MQL/SQL/Opportunity/Customer/Lost, drag & drop | 7 | DONE |
+| 4.6 | ~~Lead scoring engine~~ | Regole configurabili, BullMQ ricalcolo su activity | 5 | DONE |
+| 4.7 | ~~Segmentazione~~ | Query builder visuale, AND/OR, preview conteggio live | 6 | DONE |
+| 4.8 | ~~Webhook lead ads~~ | Auto-create contatto da Google/Meta Lead Ads | 4 | DONE |
+| 4.9 | ~~Note & attività~~ | Nota, log chiamata/meeting, visualizzazione timeline | 3 | DONE |
+| | **Subtotale CRM** | | **47h** | **9/9 DONE** |
 
 ### 4B — Email Automation
 
-| # | Task | Dettaglio | Ore |
-|---|------|-----------|-----|
-| 4.10 | Amazon SES integration | sendEmail, sendBulkEmail, SNS webhook bounce/complaint, tracking | 5 |
-| 4.11 | Email builder | Drag & drop con @react-email, preview mobile/desktop, merge vars | 10 |
-| 4.12 | Template library | 8 template predefiniti, preview + "Usa questo" | 4 |
-| 4.13 | Liste & segmenti | CRUD liste, segmenti dinamici, conteggio subscriber | 4 |
-| 4.14 | Campagne email | Wizard: lista → template → subject → preview → schedule/send, batch 50/sec | 6 |
-| 4.15 | A/B test email | 2 subject su 20% lista, dopo 4h winner all'80% | 5 |
-| 4.16 | Email analytics | sent/delivered/opened/clicked/bounced, grafici, click heatmap | 5 |
-| 4.17 | Automation workflow editor | reactflow canvas, nodi: Trigger/Condition/SendEmail/Wait/AddTag/ChangeStage/Webhook | 12 |
-| 4.18 | Automation engine | Esegue workflow JSON, delay con BullMQ, condizioni, logging | 8 |
-| 4.19 | AI email writer | Claude genera subject (5 varianti) + body, streaming | 3 |
-| 4.20 | Testing | Mock SES, test engine, test builder | 5 |
-| | **Subtotale Email** | | **67h** |
-| | **TOTALE FASE 4** | | **114h** |
+| # | Task | Dettaglio | Ore | Stato |
+|---|------|-----------|-----|-------|
+| 4.10 | ~~Amazon SES integration~~ | sendEmail, sendBulkEmail, SNS webhook bounce/complaint, tracking | 5 | DONE |
+| 4.11 | ~~Email builder~~ | Drag & drop con @react-email, preview mobile/desktop, merge vars | 10 | DONE |
+| 4.12 | ~~Template library~~ | 8 template predefiniti, preview + "Usa questo" | 4 | DONE |
+| 4.13 | ~~Liste & segmenti~~ | CRUD liste, segmenti dinamici, conteggio subscriber | 4 | DONE |
+| 4.14 | ~~Campagne email~~ | Wizard: lista → template → subject → preview → schedule/send, batch 50/sec | 6 | DONE |
+| 4.15 | ~~A/B test email~~ | 2 subject su 20% lista, dopo 4h winner all'80% | 5 | DONE |
+| 4.16 | ~~Email analytics~~ | sent/delivered/opened/clicked/bounced, grafici, click heatmap | 5 | DONE |
+| 4.17 | ~~Automation workflow editor~~ | reactflow canvas, nodi: Trigger/Condition/SendEmail/Wait/AddTag/ChangeStage/Webhook | 12 | DONE |
+| 4.18 | ~~Automation engine~~ | Esegue workflow JSON, delay con BullMQ, condizioni, logging | 8 | DONE |
+| 4.19 | ~~AI email writer~~ | Claude genera subject (5 varianti) + body, streaming | 3 | DONE |
+| 4.20 | ~~Testing~~ | Mock SES, test engine, test builder | 5 | DONE |
+| | **Subtotale Email** | | **67h** | **11/11 DONE** |
+| | **TOTALE FASE 4** | | **114h** | **20/20 DONE** |
 
 ### Workflow Automation Engine
 
@@ -1005,23 +1005,23 @@ TRIGGERS                    CONDITIONS              ACTIONS
 
 ## FASE 5 — Heatmap & Session Recording (Settimane 16-18)
 
-| # | Task | Dettaglio | Ore |
-|---|------|-----------|-----|
-| 5.1 | Tracking script | Vanilla JS <3KB gzip: click, scroll, mousemove, rage click, sendBeacon batch 5s | 10 |
-| 5.2 | Tracking API | POST /api/tracking: valida, rate limit, batch insert | 5 |
-| 5.3 | Setup page | Genera trackingId, snippet copiabile, verifica installazione | 3 |
-| 5.4 | Click heatmap | Canvas overlay su screenshot, gradiente colore per densità | 10 |
-| 5.5 | Scroll heatmap | Barra laterale % utenti per profondità | 5 |
-| 5.6 | Move heatmap | Dati mousemove, toggle click/scroll/move | 3 |
-| 5.7 | rrweb integration | Recorder nel tracking script (opt-in Pro+), storage compresso | 6 |
-| 5.8 | Session replay player | rrweb-player, timeline eventi, velocità 1x/2x/4x | 5 |
-| 5.9 | Session list | Tabella: durata, pagine, device, browser, click, rage clicks | 5 |
-| 5.10 | Rage + dead click | Badge, aggregazione per pagina, alert soglia | 4 |
-| 5.11 | Funnel analysis | Definisci step URL, barra drop-off %, numeri assoluti | 5 |
-| 5.12 | Link a CRM | Form submit con email → collega sessioni a contatto | 4 |
-| 5.13 | Privacy & GDPR | Auto-mask password, [data-hm-mask], cookie-free, data retention | 3 |
-| 5.14 | Testing | Test script jsdom, test API, test rendering | 5 |
-| | **TOTALE FASE 5** | | **73h** |
+| # | Task | Dettaglio | Ore | Stato |
+|---|------|-----------|-----|-------|
+| 5.1 | ~~Tracking script~~ | Vanilla JS <3KB gzip: click, scroll, mousemove, rage click, sendBeacon batch 5s | 10 | DONE |
+| 5.2 | ~~Tracking API~~ | POST /api/tracking: valida, rate limit, batch insert | 5 | DONE |
+| 5.3 | ~~Setup page~~ | Genera trackingId, snippet copiabile, verifica installazione | 3 | DONE |
+| 5.4 | ~~Click heatmap~~ | Canvas overlay su screenshot, gradiente colore per densità | 10 | DONE |
+| 5.5 | ~~Scroll heatmap~~ | Barra laterale % utenti per profondità | 5 | DONE |
+| 5.6 | ~~Move heatmap~~ | Dati mousemove, toggle click/scroll/move | 3 | DONE |
+| 5.7 | ~~rrweb integration~~ | Recorder nel tracking script (opt-in Pro+), storage compresso | 6 | DONE |
+| 5.8 | ~~Session replay player~~ | rrweb-player, timeline eventi, velocità 1x/2x/4x | 5 | DONE |
+| 5.9 | ~~Session list~~ | Tabella: durata, pagine, device, browser, click, rage clicks | 5 | DONE |
+| 5.10 | ~~Funnel analysis~~ | Badge, aggregazione per pagina, funnel chart, Sankey flow | 4 | DONE |
+| 5.11 | ~~Rage + dead click~~ | Aggregazione per pagina, alert soglia | 5 | DONE |
+| 5.12 | ~~Link a CRM~~ | Form submit con email → collega sessioni a contatto | 4 | DONE |
+| 5.13 | ~~Privacy & GDPR~~ | Auto-mask password, [data-hm-mask], cookie-free, data retention | 3 | DONE |
+| 5.14 | ~~Testing~~ | Test script jsdom, test API, test rendering | 5 | DONE |
+| | **TOTALE FASE 5** | | **73h** | **14/14 DONE** |
 
 ### Tracking Script
 
@@ -1081,22 +1081,22 @@ TRIGGERS                    CONDITIONS              ACTIONS
 
 ## FASE 6 — Integration, Billing & Launch (Settimane 19-21)
 
-| # | Task | Dettaglio | Ore |
-|---|------|-----------|-----|
-| 6.1 | Overview unificata | KPI top da ogni modulo, grafici mini, attività recenti, alert | 6 |
-| 6.2 | Profilo contatto 360° | Timeline cross-module: social, ads, email, heatmap | 6 |
-| 6.3 | Webby integration | "Genera Landing Page" → chiama Webby → deploy → auto tracking | 8 |
-| 6.4 | Notifiche in-app | Bell icon, dropdown, WebSocket o polling 30s | 5 |
-| 6.5 | Stripe billing | Free / Starter $19 / Pro $49 / Agency $99, webhook lifecycle | 8 |
-| 6.6 | Onboarding wizard | Connetti social → ads → tracking → primo post | 5 |
-| 6.7 | Settings pages | General, Team, Integrations, Billing | 5 |
-| 6.8 | Performance | Redis caching, ISR, lazy loading, image optimization | 6 |
-| 6.9 | Mobile responsive | Fix tutti i moduli per tablet (768px) e mobile (375px) | 6 |
-| 6.10 | Security | Rate limiting, token encryption, CORS, CSP, input sanitization | 5 |
-| 6.11 | Backup & monitoring | pg_dump daily, health check, error logging | 4 |
-| 6.12 | E2E testing | Playwright: auth, post, campaign, contacts, email, heatmap | 8 |
-| 6.13 | Deploy production | Docker multi-stage build, docker-compose up, DNS, SSL, smoke test | 4 |
-| | **TOTALE FASE 6** | | **76h** |
+| # | Task | Dettaglio | Ore | Stato |
+|---|------|-----------|-----|-------|
+| 6.1 | ~~Overview unificata~~ | KPI top da ogni modulo, grafici mini, attività recenti, alert | 6 | DONE |
+| 6.2 | ~~Profilo contatto 360°~~ | Timeline cross-module: social, ads, email, heatmap | 6 | DONE |
+| 6.3 | ~~Webby integration~~ | "Genera Landing Page" → chiama Webby → deploy → auto tracking | 8 | DONE |
+| 6.4 | ~~Notifiche in-app~~ | Bell icon, dropdown, polling 30s | 5 | DONE |
+| 6.5 | ~~Stripe billing~~ | Free / Starter $19 / Pro $49 / Agency $99, webhook lifecycle | 8 | DONE |
+| 6.6 | ~~Onboarding wizard~~ | Connetti social → ads → tracking → primo post | 5 | DONE |
+| 6.7 | ~~Settings pages~~ | General, Team, Integrations, Billing | 5 | DONE |
+| 6.8 | ~~Performance~~ | Redis caching, ISR, lazy loading, image optimization | 6 | DONE |
+| 6.9 | ~~Mobile responsive~~ | Fix tutti i moduli per tablet (768px) e mobile (375px) | 6 | DONE |
+| 6.10 | ~~Security~~ | Rate limiting, token encryption, CORS, CSP, input sanitization | 5 | DONE |
+| 6.11 | ~~Backup & monitoring~~ | pg_dump daily, health check, error logging | 4 | DONE |
+| 6.12 | ~~E2E testing~~ | Playwright: auth, post, campaign, contacts, email, heatmap | 8 | DONE |
+| 6.13 | Deploy production | Docker multi-stage build, docker-compose up, DNS, SSL, smoke test | 4 | TODO |
+| | **TOTALE FASE 6** | | **76h** | **12/13 DONE** |
 
 ### Piani Pricing
 

@@ -67,4 +67,112 @@ export const workspaceRouter = router({
         },
       });
     }),
+
+  // Update workspace
+  update: workspaceProcedure
+    .input(
+      z.object({
+        workspaceId: z.string(),
+        name: z.string().min(2).max(50).optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      if (ctx.membership.role !== "OWNER" && ctx.membership.role !== "ADMIN") {
+        throw new TRPCError({ code: "FORBIDDEN" });
+      }
+      return ctx.prisma.workspace.update({
+        where: { id: input.workspaceId },
+        data: { ...(input.name && { name: input.name }) },
+      });
+    }),
+
+  // List members
+  members: workspaceProcedure
+    .input(z.object({ workspaceId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      return ctx.prisma.workspaceMember.findMany({
+        where: { workspaceId: input.workspaceId },
+        include: { user: { select: { id: true, name: true, email: true, image: true } } },
+        orderBy: { joinedAt: "asc" },
+      });
+    }),
+
+  // Invite member by email
+  invite: workspaceProcedure
+    .input(
+      z.object({
+        workspaceId: z.string(),
+        email: z.string().email(),
+        role: z.enum(["ADMIN", "MEMBER", "VIEWER"]).default("MEMBER"),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      if (ctx.membership.role !== "OWNER" && ctx.membership.role !== "ADMIN") {
+        throw new TRPCError({ code: "FORBIDDEN" });
+      }
+
+      const user = await ctx.prisma.user.findUnique({
+        where: { email: input.email },
+      });
+      if (!user) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "User not found. They must sign up first.",
+        });
+      }
+
+      const existing = await ctx.prisma.workspaceMember.findUnique({
+        where: {
+          userId_workspaceId: {
+            userId: user.id,
+            workspaceId: input.workspaceId,
+          },
+        },
+      });
+      if (existing) {
+        throw new TRPCError({
+          code: "CONFLICT",
+          message: "User is already a member",
+        });
+      }
+
+      return ctx.prisma.workspaceMember.create({
+        data: {
+          userId: user.id,
+          workspaceId: input.workspaceId,
+          role: input.role,
+        },
+      });
+    }),
+
+  // Remove member
+  removeMember: workspaceProcedure
+    .input(
+      z.object({
+        workspaceId: z.string(),
+        memberId: z.string(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      if (ctx.membership.role !== "OWNER") {
+        throw new TRPCError({ code: "FORBIDDEN" });
+      }
+
+      const member = await ctx.prisma.workspaceMember.findUnique({
+        where: { id: input.memberId },
+      });
+      if (!member || member.workspaceId !== input.workspaceId) {
+        throw new TRPCError({ code: "NOT_FOUND" });
+      }
+      if (member.role === "OWNER") {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Cannot remove workspace owner",
+        });
+      }
+
+      return ctx.prisma.workspaceMember.delete({
+        where: { id: input.memberId },
+      });
+    }),
 });

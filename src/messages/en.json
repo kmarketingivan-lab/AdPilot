@@ -1,0 +1,90 @@
+{
+  "common": {
+    "retry": "Retry",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "search": "Search",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "confirm": "Confirm",
+    "back": "Back",
+    "next": "Next",
+    "close": "Close"
+  },
+  "auth": {
+    "signIn": "Sign In",
+    "signOut": "Sign Out",
+    "signInWith": "Sign in with {provider}"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "overview": "Overview"
+  },
+  "social": {
+    "title": "Social Media",
+    "accounts": "Accounts",
+    "compose": "Compose",
+    "calendar": "Calendar",
+    "analytics": "Analytics",
+    "library": "Media Library"
+  },
+  "analytics": {
+    "title": "Analytics",
+    "campaigns": "Campaigns",
+    "reports": "Reports",
+    "dateRange": {
+      "today": "Today",
+      "last7days": "Last 7 days",
+      "last30days": "Last 30 days",
+      "lastMonth": "Last month",
+      "custom": "Custom"
+    }
+  },
+  "crm": {
+    "title": "CRM",
+    "contacts": "Contacts",
+    "pipeline": "Pipeline",
+    "noContacts": "No contacts found"
+  },
+  "email": {
+    "title": "Email",
+    "campaigns": "Campaigns",
+    "templates": "Templates",
+    "lists": "Lists",
+    "analytics": "Analytics"
+  },
+  "heatmap": {
+    "title": "Heatmap",
+    "sessions": "Sessions",
+    "funnel": "Funnel",
+    "rageClicks": "Rage Clicks"
+  },
+  "ads": {
+    "title": "Ads",
+    "generate": "Generate",
+    "library": "Copy Library",
+    "preview": "Preview",
+    "newCopy": "New copy",
+    "editCopy": "Edit copy"
+  },
+  "settings": {
+    "title": "Settings",
+    "general": "General",
+    "team": "Team",
+    "integrations": "Integrations",
+    "billing": "Billing"
+  },
+  "onboarding": {
+    "createWorkspace": "Create your Workspace",
+    "chooseName": "Choose a name"
+  },
+  "errors": {
+    "somethingWentWrong": "Something went wrong",
+    "loadingError": "Loading error",
+    "notFound": "Page not found"
+  }
+}

@@ -1,9 +1,9 @@
-import { auth } from "@/lib/auth";
 import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 
-const publicRoutes = ["/", "/auth/signin"];
+const publicRoutes = ["/", "/auth/signin", "/setup"];
 
-export default auth((req) => {
+export default function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
   // Allow public routes
@@ -11,20 +11,27 @@ export default auth((req) => {
     return NextResponse.next();
   }
 
-  // Allow auth API routes
-  if (pathname.startsWith("/api/auth")) {
+  // Allow API routes (auth, setup, webhooks, health, tracking)
+  if (pathname.startsWith("/api/")) {
     return NextResponse.next();
   }
 
-  // Protect /dashboard/* routes — redirect to signin if not authenticated
-  if (pathname.startsWith("/dashboard") && !req.auth) {
-    const signInUrl = new URL("/auth/signin", req.url);
-    signInUrl.searchParams.set("callbackUrl", pathname);
-    return NextResponse.redirect(signInUrl);
+  // Protect /dashboard/* routes — check for session token cookie
+  if (pathname.startsWith("/dashboard")) {
+    const token =
+      req.cookies.get("__Secure-authjs.session-token") ??
+      req.cookies.get("authjs.session-token") ??
+      req.cookies.get("next-auth.session-token");
+
+    if (!token) {
+      const signInUrl = new URL("/auth/signin", req.url);
+      signInUrl.searchParams.set("callbackUrl", pathname);
+      return NextResponse.redirect(signInUrl);
+    }
   }
 
   return NextResponse.next();
-});
+}
 
 export const config = {
   matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],

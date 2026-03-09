@@ -21,6 +21,8 @@ model User {
   workspaces    WorkspaceMember[]
   accounts      Account[]
   sessions      Session[]
+  notifications Notification[]
+  onboarded     Boolean   @default(false)
 }
 
 model Account {
@@ -76,6 +78,10 @@ model Workspace {
   adsConnections   AdsConnection[]
   mediaFiles       MediaFile[]
   emailAutomations EmailAutomation[]
+  webhooks         Webhook[]
+  segments         Segment[]
+  notifications    Notification[]
+  apiKeys          ApiKey[]
 }
 
 model WorkspaceMember {
@@ -119,12 +125,17 @@ model Post {
   publishedAt DateTime?
   status      PostStatus   @default(DRAFT)
   aiGenerated Boolean      @default(false)
+  deletedAt   DateTime?
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
   workspaceId String
   workspace   Workspace    @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   platforms   PostPlatform[]
   mediaFiles  PostMedia[]
+
+  @@index([workspaceId])
+  @@index([status])
+  @@index([publishedAt])
 }
 
 model PostPlatform {
@@ -145,6 +156,8 @@ model PostPlatform {
   socialAccount   SocialAccount @relation(fields: [socialAccountId], references: [id], onDelete: Cascade)
 
   @@unique([postId, socialAccountId])
+  @@index([postId])
+  @@index([socialAccountId])
 }
 
 model PostMedia {
@@ -170,6 +183,8 @@ model MediaFile {
   workspace   Workspace  @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   posts       PostMedia[]
   createdAt   DateTime   @default(now())
+
+  @@index([workspaceId])
 }
 
 // ═══════════════════════════════════════
@@ -209,8 +224,13 @@ model Campaign {
   connection   AdsConnection    @relation(fields: [connectionId], references: [id], onDelete: Cascade)
   creatives    AdCreative[]
   metrics      CampaignMetric[]
+  deletedAt    DateTime?
   createdAt    DateTime         @default(now())
   updatedAt    DateTime         @updatedAt
+
+  @@index([workspaceId])
+  @@index([connectionId])
+  @@index([status])
 }
 
 model AdCreative {
@@ -282,10 +302,16 @@ model Contact {
   activities   Activity[]
   emailEvents  EmailEvent[]
   notes        ContactNote[]
+  deletedAt    DateTime?
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
 
   @@unique([email, workspaceId])
+  @@index([workspaceId])
+  @@index([email])
+  @@index([stage])
+  @@index([score])
+  @@index([createdAt])
 }
 
 model ContactNote {
@@ -304,6 +330,9 @@ model Activity {
   contactId   String
   contact     Contact      @relation(fields: [contactId], references: [id], onDelete: Cascade)
   createdAt   DateTime     @default(now())
+
+  @@index([contactId])
+  @@index([type])
 }
 
 // ═══════════════════════════════════════
@@ -330,6 +359,8 @@ model EmailSubscriber {
   createdAt DateTime         @default(now())
 
   @@unique([email, listId])
+  @@index([listId])
+  @@index([status])
 }
 
 model EmailCampaign {
@@ -343,8 +374,12 @@ model EmailCampaign {
   sentAt      DateTime?
   listId      String
   list        EmailList           @relation(fields: [listId], references: [id], onDelete: Cascade)
+  deletedAt   DateTime?
   events      EmailEvent[]
   createdAt   DateTime            @default(now())
+
+  @@index([listId])
+  @@index([status])
 }
 
 model EmailEvent {
@@ -396,7 +431,12 @@ model HeatmapSession {
   site         HeatmapSite    @relation(fields: [siteId], references: [id], onDelete: Cascade)
   events       HeatmapEvent[]
   recording    Json?
+  deletedAt    DateTime?
   startedAt    DateTime       @default(now())
+
+  @@index([siteId])
+  @@index([visitorId])
+  @@index([startedAt])
 }
 
 model HeatmapEvent {
@@ -409,6 +449,101 @@ model HeatmapEvent {
   sessionId   String
   session     HeatmapSession   @relation(fields: [sessionId], references: [id], onDelete: Cascade)
   timestamp   DateTime         @default(now())
+
+  @@index([sessionId])
+  @@index([timestamp])
+}
+
+// ═══════════════════════════════════════
+// WEBHOOKS & SEGMENTS
+// ═══════════════════════════════════════
+
+model Webhook {
+  id          String            @id @default(cuid())
+  url         String
+  events      String[]
+  secret      String            @db.Text
+  active      Boolean           @default(true)
+  workspaceId String
+  workspace   Workspace         @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  deliveries  WebhookDelivery[]
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  @@index([workspaceId])
+}
+
+model WebhookDelivery {
+  id          String        @id @default(cuid())
+  event       String
+  payload     Json
+  statusCode  Int?
+  response    String?       @db.Text
+  error       String?       @db.Text
+  attempts    Int           @default(0)
+  deliveredAt DateTime?
+  webhookId   String
+  webhook     Webhook       @relation(fields: [webhookId], references: [id], onDelete: Cascade)
+  createdAt   DateTime      @default(now())
+
+  @@index([webhookId])
+  @@index([createdAt])
+}
+
+model Segment {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  definition  Json
+  contactCount Int     @default(0)
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([workspaceId])
+}
+
+// ═══════════════════════════════════════
+// NOTIFICATIONS
+// ═══════════════════════════════════════
+
+model Notification {
+  id          String             @id @default(cuid())
+  type        NotificationType
+  title       String
+  body        String             @db.Text
+  read        Boolean            @default(false)
+  metadata    Json?
+  userId      String
+  user        User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workspaceId String?
+  workspace   Workspace?         @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  createdAt   DateTime           @default(now())
+
+  @@index([userId])
+  @@index([workspaceId])
+  @@index([read])
+}
+
+// ═══════════════════════════════════════
+// API KEYS
+// ═══════════════════════════════════════
+
+model ApiKey {
+  id          String    @id @default(cuid())
+  name        String
+  keyHash     String    @unique
+  keyPrefix   String
+  lastUsedAt  DateTime?
+  expiresAt   DateTime?
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  createdBy   String
+  createdAt   DateTime  @default(now())
+
+  @@index([workspaceId])
+  @@index([keyPrefix])
 }
 
 // ═══════════════════════════════════════
@@ -541,4 +676,15 @@ enum HeatmapEventType {
   MOUSEMOVE
   RAGE_CLICK
   DEAD_CLICK
+}
+
+enum NotificationType {
+  POST_PUBLISHED
+  POST_FAILED
+  CAMPAIGN_ENDED
+  EMAIL_SENT
+  CONTACT_IMPORTED
+  BILLING_WARNING
+  TEAM_INVITE
+  SYSTEM
 }
