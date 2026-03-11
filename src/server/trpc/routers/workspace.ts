@@ -54,10 +54,15 @@ export const workspaceRouter = router({
         });
       }
 
+      // Self-hosted: default to AGENCY (unlimited). SaaS: default to FREE.
+      const isSelfHosted = !process.env.STRIPE_SECRET_KEY;
+      const defaultPlan = isSelfHosted ? "AGENCY" : "FREE";
+
       return ctx.prisma.workspace.create({
         data: {
           name: input.name,
           slug: input.slug,
+          plan: defaultPlan,
           members: {
             create: {
               userId: ctx.user.id!,

@@ -1,4 +1,4 @@
-import { generateText } from "./claude";
+import { generateText } from ".";
 
 // ---------------------------------------------------------------------------
 // Types

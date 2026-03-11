@@ -7,7 +7,7 @@ import {
   analyzeCompetitor,
   type AdPlatform,
 } from "@/server/services/ai/copy-generator";
-import { ClaudeApiError } from "@/server/services/ai/claude";
+import { ClaudeApiError } from "@/server/services/ai";
 
 // ---------------------------------------------------------------------------
 // Schemas

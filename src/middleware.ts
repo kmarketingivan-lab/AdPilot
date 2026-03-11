@@ -1,22 +1,31 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-const publicRoutes = ["/", "/auth/signin", "/setup"];
+const isSelfHosted =
+  !process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET;
 
 export default function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  // Allow public routes
+  // Self-hosted: no auth required, redirect landing to dashboard
+  if (isSelfHosted) {
+    if (pathname === "/") {
+      return NextResponse.redirect(new URL("/dashboard", req.url));
+    }
+    return NextResponse.next();
+  }
+
+  // --- SaaS mode: normal auth flow ---
+  const publicRoutes = ["/", "/auth/signin", "/setup"];
+
   if (publicRoutes.includes(pathname)) {
     return NextResponse.next();
   }
 
-  // Allow API routes (auth, setup, webhooks, health, tracking)
   if (pathname.startsWith("/api/")) {
     return NextResponse.next();
   }
 
-  // Protect /dashboard/* routes — check for session token cookie
   if (pathname.startsWith("/dashboard")) {
     const token =
       req.cookies.get("__Secure-authjs.session-token") ??

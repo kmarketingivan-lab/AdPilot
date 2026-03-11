@@ -1,0 +1,100 @@
+# ═══════════════════════════════════════════════════════════════
+# AdPilot — Local Development (lightweight, no AI backend)
+#
+# Usage:
+#   cp .env.local.example .env
+#   docker compose -f docker-compose.local.yml up -d
+#
+# AI features are disabled. Use Claude Code CLI for AI tasks.
+# To enable AI, set AI_PROVIDER=ollama or AI_PROVIDER=claude
+# and add the relevant service/keys.
+#
+# Requires: Docker, ~1.5 GB RAM
+# ═══════════════════════════════════════════════════════════════
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: adpilot-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: adpilot
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-adpilot_dev}
+      POSTGRES_DB: adpilot
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - adpilot-local
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U adpilot -d adpilot"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: adpilot-redis
+    restart: unless-stopped
+    volumes:
+      - redisdata:/data
+    ports:
+      - "6379:6379"
+    networks:
+      - adpilot-local
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: adpilot-app
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "3001:3000"
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql://adpilot:${DB_PASSWORD:-adpilot_dev}@db:5432/adpilot
+      REDIS_URL: redis://redis:6379
+      AI_PROVIDER: none
+      AUTH_TRUST_HOST: "true"
+      NEXTAUTH_URL: http://localhost:3001
+    networks:
+      - adpilot-local
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.worker
+    container_name: adpilot-worker
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql://adpilot:${DB_PASSWORD:-adpilot_dev}@db:5432/adpilot
+      REDIS_URL: redis://redis:6379
+      AI_PROVIDER: none
+    networks:
+      - adpilot-local
+
+networks:
+  adpilot-local:
+    driver: bridge
+
+volumes:
+  pgdata:
+  redisdata:

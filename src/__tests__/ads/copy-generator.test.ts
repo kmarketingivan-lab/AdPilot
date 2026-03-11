@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-// Mock the Claude service before importing the module under test
-vi.mock("@/server/services/ai/claude", () => ({
+// Mock the AI service before importing the module under test
+vi.mock("@/server/services/ai", () => ({
   generateText: vi.fn(),
 }));
 
@@ -12,7 +12,7 @@ import {
   PLATFORM_CHAR_LIMITS,
   type AdBrief,
 } from "@/server/services/ai/copy-generator";
-import { generateText } from "@/server/services/ai/claude";
+import { generateText } from "@/server/services/ai";
 
 const mockedGenerateText = vi.mocked(generateText);
 

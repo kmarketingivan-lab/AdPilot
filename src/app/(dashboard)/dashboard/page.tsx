@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { WelcomeGuide } from "@/components/dashboard/welcome-guide";
 
 const STATUS_COLORS: Record<string, string> = {
   DRAFT: "bg-zinc-700 text-zinc-300",
@@ -87,6 +88,9 @@ export default function DashboardOverview() {
 
   return (
     <div>
+      {/* Welcome Guide — dismissable */}
+      <WelcomeGuide />
+
       <h1 className="mb-6 text-2xl font-bold">Overview</h1>
 
       {/* KPI Cards */}

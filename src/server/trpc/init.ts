@@ -3,8 +3,41 @@ import superjson from "superjson";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
+const SELF_HOSTED = !process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET;
+const LOCAL_ADMIN_EMAIL = "admin@adpilot.local";
+
+async function getOrCreateLocalAdmin() {
+  let user = await prisma.user.findUnique({ where: { email: LOCAL_ADMIN_EMAIL } });
+  if (!user) {
+    user = await prisma.user.create({
+      data: {
+        email: LOCAL_ADMIN_EMAIL,
+        name: "Admin",
+        role: "ADMIN",
+        emailVerified: new Date(),
+        onboarded: true,
+      },
+    });
+  }
+  return {
+    user: {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      role: "admin",
+      plan: "agency",
+    },
+    expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+  };
+}
+
 export async function createTRPCContext() {
-  const session = await auth();
+  let session = await auth();
+
+  // Self-hosted: auto-login as local admin if no session
+  if (!session?.user && SELF_HOSTED) {
+    session = await getOrCreateLocalAdmin();
+  }
 
   return {
     session,

@@ -115,7 +115,7 @@ async function metaFetch<T>(
   for (let attempt = 0; attempt <= RATE_LIMIT_MAX_RETRIES; attempt++) {
     try {
       const response = await fetch(url, options);
-      const data = await response.json();
+      const data = (await response.json()) as { error?: MetaApiErrorData } & T;
 
       if (!response.ok) {
         const errorPayload = data?.error;
@@ -157,7 +157,7 @@ async function metaFetch<T>(
             // Retry once with the refreshed token
             try {
               const retryResponse = await fetch(refreshedUrl, options);
-              const retryData = await retryResponse.json();
+              const retryData = (await retryResponse.json()) as { error?: MetaApiErrorData } & T;
               if (!retryResponse.ok) {
                 const retryErrorPayload = retryData?.error;
                 if (retryErrorPayload) {

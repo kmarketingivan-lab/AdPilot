@@ -1,4 +1,4 @@
-import { generateText, type ClaudeOptions } from "@/server/services/ai/claude";
+import { generateText, type AIProviderOptions } from "@/server/services/ai";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -47,12 +47,12 @@ export interface EmailBodyResult {
 // Claude options (lower temperature for more controlled output)
 // ---------------------------------------------------------------------------
 
-const AI_OPTIONS: ClaudeOptions = {
+const AI_OPTIONS: AIProviderOptions = {
   maxTokens: 4096,
   temperature: 0.8,
 };
 
-const BODY_OPTIONS: ClaudeOptions = {
+const BODY_OPTIONS: AIProviderOptions = {
   maxTokens: 4096,
   temperature: 0.6,
 };

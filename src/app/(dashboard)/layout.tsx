@@ -6,6 +6,8 @@ import { Sidebar } from "@/components/layout/sidebar";
 import { Topbar } from "@/components/layout/topbar";
 import { WorkspaceProvider } from "@/components/workspace-provider";
 import { useIsMobile } from "@/lib/hooks/use-media-query";
+import { useWorkspace } from "@/hooks/use-workspace";
+import { OnboardingWizard } from "@/components/onboarding/onboarding-wizard";
 
 export default function DashboardLayout({
   children,
@@ -52,41 +54,82 @@ export default function DashboardLayout({
 
   return (
     <WorkspaceProvider>
-      <div className="min-h-screen bg-zinc-950 text-zinc-100">
-        {/* Mobile overlay */}
-        {isMobile && mobileMenuOpen && (
-          <div
-            className="fixed inset-0 z-20 bg-black/50"
-            onClick={() => setMobileMenuOpen(false)}
-          />
-        )}
-
-        <Sidebar
-          collapsed={isMobile ? false : sidebarCollapsed}
-          onToggle={toggleSidebar}
-          mobileOpen={mobileMenuOpen}
-          isMobile={isMobile}
-          onMobileClose={() => setMobileMenuOpen(false)}
-        />
-
-        <div
-          className={cn(
-            "transition-all duration-200",
-            isMobile
-              ? "ml-0"
-              : sidebarCollapsed
-                ? "ml-16"
-                : "ml-60"
-          )}
-        >
-          <Topbar
-            theme={theme}
-            onToggleTheme={toggleTheme}
-            onMenuToggle={isMobile ? toggleSidebar : undefined}
-          />
-          <main className="p-3 md:p-6">{children}</main>
-        </div>
-      </div>
+      <DashboardContent
+        sidebarCollapsed={sidebarCollapsed}
+        toggleSidebar={toggleSidebar}
+        mobileMenuOpen={mobileMenuOpen}
+        setMobileMenuOpen={setMobileMenuOpen}
+        isMobile={isMobile}
+        theme={theme}
+        onToggleTheme={toggleTheme}
+      >
+        {children}
+      </DashboardContent>
     </WorkspaceProvider>
+  );
+}
+
+function DashboardContent({
+  children,
+  sidebarCollapsed,
+  toggleSidebar,
+  mobileMenuOpen,
+  setMobileMenuOpen,
+  isMobile,
+  theme,
+  onToggleTheme,
+}: {
+  children: React.ReactNode;
+  sidebarCollapsed: boolean;
+  toggleSidebar: () => void;
+  mobileMenuOpen: boolean;
+  setMobileMenuOpen: (v: boolean) => void;
+  isMobile: boolean;
+  theme: "light" | "dark";
+  onToggleTheme: () => void;
+}) {
+  const { workspaces, isLoading } = useWorkspace();
+
+  // Show onboarding wizard if user has no workspaces
+  if (!isLoading && workspaces.length === 0) {
+    return <OnboardingWizard />;
+  }
+
+  return (
+    <div className="min-h-screen bg-zinc-950 text-zinc-100">
+      {/* Mobile overlay */}
+      {isMobile && mobileMenuOpen && (
+        <div
+          className="fixed inset-0 z-20 bg-black/50"
+          onClick={() => setMobileMenuOpen(false)}
+        />
+      )}
+
+      <Sidebar
+        collapsed={isMobile ? false : sidebarCollapsed}
+        onToggle={toggleSidebar}
+        mobileOpen={mobileMenuOpen}
+        isMobile={isMobile}
+        onMobileClose={() => setMobileMenuOpen(false)}
+      />
+
+      <div
+        className={cn(
+          "transition-all duration-200",
+          isMobile
+            ? "ml-0"
+            : sidebarCollapsed
+              ? "ml-16"
+              : "ml-60"
+        )}
+      >
+        <Topbar
+          theme={theme}
+          onToggleTheme={onToggleTheme}
+          onMenuToggle={isMobile ? toggleSidebar : undefined}
+        />
+        <main className="p-3 md:p-6">{children}</main>
+      </div>
+    </div>
   );
 }

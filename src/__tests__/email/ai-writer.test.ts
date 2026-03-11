@@ -1,11 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-// Mock the Claude service
-vi.mock("@/server/services/ai/claude", () => ({
+// Mock the AI service
+vi.mock("@/server/services/ai", () => ({
   generateText: vi.fn(),
 }));
 
-import { generateText } from "@/server/services/ai/claude";
+import { generateText } from "@/server/services/ai";
 import {
   generateSubjectLines,
   generateEmailBody,

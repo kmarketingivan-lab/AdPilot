@@ -208,7 +208,7 @@ async function uploadImage(
       ...authHeaders(accessToken),
       "Content-Type": "application/octet-stream",
     },
-    body: imageBuffer as unknown as BodyInit,
+    body: imageBuffer as unknown as RequestInit["body"],
   });
 }
 

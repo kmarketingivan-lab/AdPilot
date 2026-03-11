@@ -8,7 +8,6 @@ import {
   Users,
   Flame,
   Layout,
-  Check,
 } from "lucide-react";
 import Navbar from "@/components/landing/navbar";
 
@@ -51,69 +50,6 @@ const features = [
   },
 ];
 
-const plans = [
-  {
-    name: "Free",
-    price: "$0",
-    period: "per sempre",
-    description: "Per iniziare a esplorare",
-    features: [
-      "3 account social",
-      "30 post al mese",
-      "Dashboard base",
-      "1 utente",
-    ],
-    cta: "Inizia Gratis",
-    highlighted: false,
-  },
-  {
-    name: "Starter",
-    price: "$19",
-    period: "al mese",
-    description: "Per freelancer e piccoli business",
-    features: [
-      "10 account social",
-      "Post illimitati",
-      "Analytics base",
-      "Email marketing",
-      "3 utenti",
-    ],
-    cta: "Scegli Starter",
-    highlighted: false,
-  },
-  {
-    name: "Pro",
-    price: "$49",
-    period: "al mese",
-    description: "Per team e aziende in crescita",
-    features: [
-      "25 account social",
-      "AI Ads Generator",
-      "CRM completo",
-      "Heatmap & Recording",
-      "Landing Page Builder",
-      "10 utenti",
-    ],
-    cta: "Scegli Pro",
-    highlighted: true,
-  },
-  {
-    name: "Agency",
-    price: "$99",
-    period: "al mese",
-    description: "Per agenzie e grandi team",
-    features: [
-      "Account illimitati",
-      "White-label",
-      "Supporto prioritario",
-      "API access",
-      "Utenti illimitati",
-      "Tutte le funzionalit\u00e0 Pro",
-    ],
-    cta: "Contattaci",
-    highlighted: false,
-  },
-];
 
 export default function HomePage() {
   return (
@@ -145,14 +81,8 @@ export default function HomePage() {
               href="/auth/signin"
               className="inline-flex h-12 items-center rounded-xl bg-indigo-600 px-8 text-base font-semibold text-white shadow-lg shadow-indigo-600/25 transition-colors hover:bg-indigo-500"
             >
-              Inizia Gratis
+              Accedi alla Dashboard
             </Link>
-            <a
-              href="#prezzi"
-              className="inline-flex h-12 items-center rounded-xl border border-zinc-700 px-8 text-base font-semibold text-zinc-300 transition-colors hover:border-zinc-500 hover:text-white"
-            >
-              Scopri i Piani
-            </a>
           </div>
         </div>
       </section>
@@ -185,71 +115,6 @@ export default function HomePage() {
                 <p className="mt-2 text-sm leading-relaxed text-zinc-400">
                   {feature.description}
                 </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Pricing */}
-      <section id="prezzi" className="py-20 sm:py-28">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
-              Piani e Prezzi
-            </h2>
-            <p className="mx-auto mt-4 max-w-2xl text-zinc-400">
-              Scegli il piano perfetto per le tue esigenze. Upgrade o downgrade
-              in qualsiasi momento.
-            </p>
-          </div>
-
-          <div className="mt-16 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {plans.map((plan) => (
-              <div
-                key={plan.name}
-                className={`relative flex flex-col rounded-2xl border p-6 ${
-                  plan.highlighted
-                    ? "border-indigo-500 bg-indigo-600/5 shadow-lg shadow-indigo-600/10"
-                    : "border-zinc-800 bg-zinc-900/50"
-                }`}
-              >
-                {plan.highlighted && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-indigo-600 px-3 py-1 text-xs font-semibold text-white">
-                    Popolare
-                  </div>
-                )}
-                <h3 className="text-lg font-semibold text-white">
-                  {plan.name}
-                </h3>
-                <p className="mt-1 text-sm text-zinc-500">{plan.description}</p>
-                <div className="mt-4 flex items-baseline gap-1">
-                  <span className="text-4xl font-extrabold text-white">
-                    {plan.price}
-                  </span>
-                  <span className="text-sm text-zinc-500">/{plan.period}</span>
-                </div>
-                <ul className="mt-6 flex-1 space-y-3">
-                  {plan.features.map((f) => (
-                    <li
-                      key={f}
-                      className="flex items-start gap-2 text-sm text-zinc-300"
-                    >
-                      <Check className="mt-0.5 h-4 w-4 shrink-0 text-indigo-400" />
-                      {f}
-                    </li>
-                  ))}
-                </ul>
-                <Link
-                  href="/auth/signin"
-                  className={`mt-8 inline-flex h-10 items-center justify-center rounded-lg text-sm font-semibold transition-colors ${
-                    plan.highlighted
-                      ? "bg-indigo-600 text-white hover:bg-indigo-500"
-                      : "border border-zinc-700 text-zinc-300 hover:border-zinc-500 hover:text-white"
-                  }`}
-                >
-                  {plan.cta}
-                </Link>
               </div>
             ))}
           </div>

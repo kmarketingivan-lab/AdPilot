@@ -23,7 +23,9 @@ RUN npx prisma generate
 ENV CSRF_SECRET="build-placeholder"
 ENV STRIPE_SECRET_KEY="sk_build_placeholder"
 ENV DATABASE_URL="postgresql://build:build@localhost:5432/build"
+ENV REDIS_URL=""
 
+ENV NODE_OPTIONS="--max-old-space-size=4096"
 RUN npm run build
 
 # Stage 3: Production runner
